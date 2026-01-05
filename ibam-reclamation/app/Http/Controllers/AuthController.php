@@ -11,19 +11,38 @@ class AuthController extends Controller
 {
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email' => 'required|email',
+        $request->validate([
+            'login' => 'required|string',
             'password' => 'required',
         ]);
 
-        if (Auth::attempt($credentials)) {
-            $user = Auth::user();
+        $login = $request->login;
+        $password = $request->password;
+
+        // Tentative de connexion par email
+        $user = User::where('email', $login)->first();
+        
+        // Si pas trouvé par email, chercher par INE
+        if (!$user) {
+            $student = \App\Models\Student::where('ine', $login)->first();
+            if ($student) {
+                $user = $student->user;
+            }
+        }
+
+        if ($user && Hash::check($password, $user->password)) {
             if ($user->status === 'INACTIF') {
-                Auth::logout();
                 return response()->json(['message' => 'Compte inactif'], 403);
             }
+            
             $token = $user->createToken('auth-token')->plainTextToken;
-            return response()->json(['token' => $token, 'user' => $user, 'role' => $user->role]);
+            $userData = $user->load(['student', 'teacher']);
+            
+            return response()->json([
+                'token' => $token, 
+                'user' => $userData, 
+                'role' => $user->role
+            ]);
         }
 
         return response()->json(['message' => 'Identifiants invalides'], 401);

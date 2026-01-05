@@ -72,7 +72,98 @@ class ClaimController extends Controller
 
     public function update(Request $request, $id)
     {
-        // Logic for updating status/decision by different roles
-        // To be implemented
+        $claim = Claim::findOrFail($id);
+        $user = Auth::user();
+        
+        $request->validate([
+            'action' => 'required|in:approve,reject,validate,close',
+            'comment' => 'nullable|string',
+            'corrected_grade' => 'nullable|numeric|min:0|max:20'
+        ]);
+
+        $action = $request->action;
+        $comment = $request->comment;
+        
+        // Vérification des permissions selon le rôle et l'étape
+        if (!$this->canProcessClaim($user, $claim, $action)) {
+            return response()->json(['message' => 'Action non autorisée'], 403);
+        }
+
+        // Traitement selon l'action
+        switch ($action) {
+            case 'approve':
+                if ($user->role === 'SCOLARITE') {
+                    $claim->status = 'en_cours';
+                    $claim->current_stage = 'ENSEIGNANT';
+                } elseif ($user->role === 'ENSEIGNANT') {
+                    $claim->status = 'validee';
+                    $claim->current_stage = 'DIRECTEUR_ACADEMIQUE';
+                    if ($request->corrected_grade) {
+                        $claim->corrected_grade = $request->corrected_grade;
+                    }
+                }
+                break;
+                
+            case 'reject':
+                $claim->status = 'rejetee';
+                $claim->decision = $comment;
+                $claim->processed_at = now();
+                break;
+                
+            case 'validate':
+                if ($user->role === 'DIRECTEUR_ACADEMIQUE') {
+                    $claim->status = 'validee';
+                    $claim->decision = $comment;
+                    $claim->processed_at = now();
+                }
+                break;
+                
+            case 'close':
+                $claim->status = 'cloturee';
+                $claim->processed_at = now();
+                break;
+        }
+        
+        $claim->save();
+        
+        // Enregistrer l'historique
+        ClaimHistory::create([
+            'claim_id' => $claim->id,
+            'user_id' => $user->id,
+            'action' => strtoupper($action),
+            'comment' => $comment
+        ]);
+        
+        return response()->json($claim->load('student.user', 'subject', 'attachments'));
+    }
+    
+    private function canProcessClaim($user, $claim, $action)
+    {
+        switch ($user->role) {
+            case 'SCOLARITE':
+                return $claim->current_stage === 'SCOLARITE' && in_array($action, ['approve', 'reject']);
+            case 'ENSEIGNANT':
+                return $claim->current_stage === 'ENSEIGNANT' && in_array($action, ['approve', 'reject']);
+            case 'DIRECTEUR_ACADEMIQUE':
+                return $claim->current_stage === 'DIRECTEUR_ACADEMIQUE' && in_array($action, ['validate', 'reject', 'close']);
+            default:
+                return false;
+        }
+    }
+    }
+    
+    public function show($id)
+    {
+        $claim = Claim::with(['student.user', 'subject', 'attachments', 'history.user'])->findOrFail($id);
+        
+        // Vérifier les permissions
+        $user = Auth::user();
+        if ($user->role === 'ETUDIANT') {
+            if ($claim->student->user_id !== $user->id) {
+                return response()->json(['message' => 'Non autorisé'], 403);
+            }
+        }
+        
+        return response()->json($claim);
     }
 }

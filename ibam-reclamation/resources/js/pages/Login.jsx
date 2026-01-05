@@ -33,12 +33,13 @@ export default function Login() {
                 {error && <div className="bg-red-100 text-red-700 p-3 mb-4 rounded">{error}</div>}
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">
-                        <label className="block text-gray-700">Email / INE</label>
+                        <label className="block text-gray-700">Email ou INE</label>
                         <input
                             type="text"
                             className="w-full mt-1 p-2 border rounded"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Votre email ou votre INE"
                             required
                         />
                     </div>

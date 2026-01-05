@@ -18,15 +18,17 @@ export default function DashboardStaff() {
             if (correctedGrade) payload.corrected_grade = correctedGrade;
             
             await axios.put(`/api/claims/${claimId}`, payload);
+            // Recharger les réclamations
             const res = await axios.get('/api/claims');
             setClaims(res.data);
         } catch (error) {
-            alert('Erreur: ' + error.response?.data?.message);
+            alert('Erreur lors du traitement: ' + error.response?.data?.message);
         }
     };
 
     const filteredClaims = claims.filter(claim => {
         if (filter === 'all') return true;
+        if (filter === 'pending') return ['soumise', 'en_cours'].includes(claim.status);
         if (filter === 'my_stage') {
             const stageMap = {
                 'SCOLARITE': 'SCOLARITE',
@@ -43,7 +45,8 @@ export default function DashboardStaff() {
             'soumise': 'bg-blue-100 text-blue-800',
             'en_cours': 'bg-yellow-100 text-yellow-800',
             'validee': 'bg-green-100 text-green-800',
-            'rejetee': 'bg-red-100 text-red-800'
+            'rejetee': 'bg-red-100 text-red-800',
+            'cloturee': 'bg-gray-100 text-gray-800'
         };
         return colors[status] || 'bg-gray-100 text-gray-800';
     };
@@ -54,19 +57,22 @@ export default function DashboardStaff() {
             'ENSEIGNANT': 'ENSEIGNANT',
             'DIRECTEUR_ACADEMIQUE': 'DIRECTEUR_ACADEMIQUE'
         };
-        return claim.current_stage === roleStageMap[user.role];
+        return claim.current_stage === roleStageMap[user.role] && 
+               ['soumise', 'en_cours'].includes(claim.status);
     };
 
     return (
         <Layout>
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-900">Gestion des Réclamations</h1>
-                <p className="mt-1 text-sm text-gray-500">Traitement des demandes - {user.role}</p>
+                <p className="mt-1 text-sm text-gray-500">Traitement des demandes académiques - {user.role}</p>
             </div>
             
+            {/* Filtres */}
             <div className="mb-6 flex space-x-4">
                 <button onClick={() => setFilter('all')} className={`px-4 py-2 rounded ${filter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>Toutes</button>
                 <button onClick={() => setFilter('my_stage')} className={`px-4 py-2 rounded ${filter === 'my_stage' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>À traiter</button>
+                <button onClick={() => setFilter('pending')} className={`px-4 py-2 rounded ${filter === 'pending' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>En cours</button>
                 <button onClick={() => setFilter('validee')} className={`px-4 py-2 rounded ${filter === 'validee' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>Validées</button>
                 <button onClick={() => setFilter('rejetee')} className={`px-4 py-2 rounded ${filter === 'rejetee' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>Rejetées</button>
             </div>
@@ -82,6 +88,11 @@ export default function DashboardStaff() {
                         getStatusColor={getStatusColor}
                     />
                 ))}
+                {filteredClaims.length === 0 && (
+                    <div className="text-center py-12 bg-white rounded-lg shadow-sm">
+                        <p className="text-gray-500">Aucune réclamation trouvée pour ce filtre.</p>
+                    </div>
+                )}
             </div>
         </Layout>
     );
@@ -102,15 +113,35 @@ function ClaimCard({ claim, onAction, canProcess, userRole, getStatusColor }) {
                     <p className="text-sm text-gray-600">
                         Étudiant: {claim.student?.user?.firstname} {claim.student?.user?.lastname} - INE: {claim.student?.ine}
                     </p>
+                    <p className="text-sm text-gray-500 mt-1">
+                        Déposée le: {new Date(claim.created_at).toLocaleDateString()}
+                    </p>
                 </div>
-                <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(claim.status)}`}>
-                    {claim.status}
-                </span>
+                <div className="flex flex-col items-end space-y-2">
+                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(claim.status)}`}>
+                        {claim.status.replace('_', ' ')}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                        Étape: {claim.current_stage}
+                    </span>
+                </div>
             </div>
             
-            <p className="text-sm text-gray-700 mb-4">
-                <strong>Motif:</strong> {claim.reason}
-            </p>
+            <div className="mb-4">
+                <p className="text-sm text-gray-700">
+                    <strong>Motif:</strong> {claim.reason}
+                </p>
+                {claim.initial_grade && (
+                    <p className="text-sm text-gray-700 mt-1">
+                        <strong>Note initiale:</strong> {claim.initial_grade}/20
+                    </p>
+                )}
+                {claim.corrected_grade && (
+                    <p className="text-sm text-gray-700 mt-1">
+                        <strong>Note corrigée:</strong> {claim.corrected_grade}/20
+                    </p>
+                )}
+            </div>
             
             {canProcess && (
                 <div className="border-t pt-4">
@@ -119,12 +150,12 @@ function ClaimCard({ claim, onAction, canProcess, userRole, getStatusColor }) {
                             onClick={() => setShowActions(true)}
                             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                         >
-                            Traiter
+                            Traiter cette réclamation
                         </button>
                     ) : (
                         <div className="space-y-3">
                             <textarea
-                                placeholder="Commentaire"
+                                placeholder="Commentaire (optionnel)"
                                 value={comment}
                                 onChange={(e) => setComment(e.target.value)}
                                 className="w-full p-2 border rounded"
@@ -134,7 +165,7 @@ function ClaimCard({ claim, onAction, canProcess, userRole, getStatusColor }) {
                             {userRole === 'ENSEIGNANT' && (
                                 <input
                                     type="number"
-                                    placeholder="Note corrigée"
+                                    placeholder="Note corrigée (optionnel)"
                                     value={correctedGrade}
                                     onChange={(e) => setCorrectedGrade(e.target.value)}
                                     className="w-full p-2 border rounded"
@@ -149,7 +180,7 @@ function ClaimCard({ claim, onAction, canProcess, userRole, getStatusColor }) {
                                     onClick={() => onAction(claim.id, 'approve', comment, correctedGrade)}
                                     className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
                                 >
-                                    Approuver
+                                    {userRole === 'DIRECTEUR_ACADEMIQUE' ? 'Valider' : 'Approuver'}
                                 </button>
                                 <button 
                                     onClick={() => onAction(claim.id, 'reject', comment)}
@@ -159,7 +190,7 @@ function ClaimCard({ claim, onAction, canProcess, userRole, getStatusColor }) {
                                 </button>
                                 <button 
                                     onClick={() => setShowActions(false)}
-                                    className="bg-gray-300 text-gray-700 px-4 py-2 rounded"
+                                    className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
                                 >
                                     Annuler
                                 </button>
