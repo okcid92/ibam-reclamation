@@ -1,59 +1,168 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 📚 Système de Gestion des Réclamations Académiques – IABM
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## 🧾 Présentation générale
 
-## About Laravel
+Ce projet consiste à concevoir et développer une **plateforme web de gestion des demandes de réclamations académiques** au sein de l’IABM.  
+La plateforme permet de **dématérialiser**, **sécuriser** et **tracer** l’ensemble du processus de réclamation des notes, depuis le dépôt par l’étudiant jusqu’à la décision finale de l’administration académique.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Le système vise à remplacer les procédures manuelles (papier, déplacements physiques, lenteurs administratives) par un **workflow numérique structuré**, fiable et transparent.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 🎯 Objectifs du projet
 
-## Learning Laravel
+- Dématérialiser le processus de demande de réclamation
+- Réduire les délais de traitement
+- Améliorer la traçabilité des décisions académiques
+- Garantir la transparence pour les étudiants
+- Sécuriser l’accès aux données selon les rôles
+- Centraliser les échanges entre les acteurs académiques
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+---
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 🧠 Méthodologie
 
-## Laravel Sponsors
+Le projet est conduit en suivant la **méthode 2TUP (Two-Track Unified Process)** :
+- **Track Fonctionnel** : analyse des besoins, cas d’utilisation, acteurs, processus métier
+- **Track Technique** : architecture logicielle, base de données, sécurité, implémentation
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+---
 
-### Premium Partners
+## 👥 Acteurs du système
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### 🎓 Étudiant
+- Dépose une demande de réclamation
+- Ajoute des pièces justificatives (copies, relevés, preuves)
+- Suit l’état d’avancement de sa demande
+- Consulte la décision finale
 
-## Contributing
+### 👨‍🏫 Enseignant
+- Accède uniquement aux matières qu’il enseigne
+- Analyse les demandes reçues
+- Valide ou rejette une réclamation
+- Propose une correction de note si nécessaire
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 🏫 Scolarité
+- Réceptionne les demandes
+- Vérifie leur recevabilité
+- Corrige les notes après validation finale
+- Informe l’étudiant du résultat
 
-## Code of Conduct
+### 🎓 Directeur Académique
+- Supervise le processus
+- Transmet les demandes aux enseignants concernés
+- Dispose d’un accès global au système
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 🎓 Directeur Académique Adjoint
+- Centralise les retours des enseignants
+- Valide la décision intermédiaire
+- Transmet la décision à la scolarité
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## 🔄 Workflow de traitement d’une réclamation
 
-## License
+1. L’étudiant rédige une demande de réclamation
+2. La demande est envoyée à la scolarité
+3. La scolarité vérifie la recevabilité
+   - si non recevable → rejet
+   - si recevable → transmission au Directeur Académique
+4. Le Directeur Académique transmet à l’enseignant concerné
+5. L’enseignant traite la demande :
+   - motif valide → correction proposée
+   - motif non valide → rejet
+6. L’enseignant transmet au Directeur Académique Adjoint
+7. Le DA Adjoint renvoie la décision à la scolarité
+8. La scolarité corrige (ou non) la note
+9. L’étudiant est informé de la décision finale
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+
+## 🔐 Authentification & Sécurité
+
+### Connexion des étudiants
+- Identifiant : **INE**
+- Mot de passe sécurisé (hashé)
+- Accès autorisé uniquement si le statut est **ACTIF**
+
+### Connexion du personnel
+- Identifiant interne (ou email)
+- Mot de passe sécurisé
+- Accès basé sur le rôle
+
+### Statut des comptes
+- **ACTIF** : accès autorisé
+- **INACTIF** : accès bloqué (sans suppression des données)
+
+### Sécurité
+- Mots de passe hashés (bcrypt)
+- Authentification par token (Laravel Sanctum)
+- Middleware de contrôle des rôles
+- Séparation stricte des accès
+
+---
+
+## 🏗️ Architecture technique
+
+### Backend
+- **Laravel** (API REST)
+- Gestion des rôles et permissions
+- Authentification par token
+- Validation métier
+
+### Frontend
+- **React**
+- Interface utilisateur moderne
+- Tableaux de bord par rôle
+- Consommation de l’API via Axios / Fetch
+
+### Base de données
+- **MySQL**
+- Modélisation relationnelle
+- Contraintes d’intégrité
+- Historisation des actions
+
+---
+
+## 🗃️ Principales entités
+
+- Utilisateurs
+- Étudiants
+- Enseignants
+- Matières
+- Réclamations
+- Pièces jointes
+- Historique des actions
+- Notifications
+
+---
+
+## 📦 Livrables du projet
+
+### 📘 Dossier d’analyse
+- Présentation du contexte
+- Objectifs
+- Acteurs
+- Cas d’utilisation
+- Contraintes fonctionnelles
+
+### 📐 Dossier de conception
+- Modèle conceptuel de données
+- Diagrammes UML
+- Architecture logicielle
+- Déploiement
+
+### 🛠️ Dossier de réalisation
+- Technologies utilisées
+- Politique de sécurité
+- Maquettes de l’interface
+- Scripts SQL
+- Seeders Laravel
+
+---
+
+## 🚀 Installation du projet (local)
+
+```bash
+git clone https://github.com/nom-du-repo/projet-reclamation-iabm.git
+cd projet-reclamation-iabm
