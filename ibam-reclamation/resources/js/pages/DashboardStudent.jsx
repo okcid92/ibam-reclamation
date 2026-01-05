@@ -1,67 +1,204 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Layout from '../layouts/Layout';
+import ClaimCard from '../components/ClaimCard';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function DashboardStudent() {
     const [claims, setClaims] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [filter, setFilter] = useState('all');
+    const { user } = useAuth();
     
     useEffect(() => {
-        axios.get('/api/claims').then(res => setClaims(res.data)).catch(console.error);
+        fetchClaims();
     }, []);
+
+    const fetchClaims = async () => {
+        try {
+            const response = await axios.get('/api/claims');
+            setClaims(response.data);
+        } catch (error) {
+            console.error('Erreur lors du chargement des réclamations:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const getFilteredClaims = () => {
+        switch (filter) {
+            case 'en_cours':
+                return claims.filter(claim => ['soumise', 'en_cours', 'en_attente_scolarite', 'en_attente_directeur', 'en_attente_enseignant', 'en_attente_da_adjoint'].includes(claim.status));
+            case 'validee':
+                return claims.filter(claim => claim.status === 'validee');
+            case 'rejetee':
+                return claims.filter(claim => claim.status === 'rejetee');
+            default:
+                return claims;
+        }
+    };
+
+    const getClaimCounts = () => {
+        return {
+            all: claims.length,
+            en_cours: claims.filter(claim => ['soumise', 'en_cours', 'en_attente_scolarite', 'en_attente_directeur', 'en_attente_enseignant', 'en_attente_da_adjoint'].includes(claim.status)).length,
+            validee: claims.filter(claim => claim.status === 'validee').length,
+            rejetee: claims.filter(claim => claim.status === 'rejetee').length
+        };
+    };
+
+    const filteredClaims = getFilteredClaims();
+    const counts = getClaimCounts();
+
+    if (loading) {
+        return (
+            <Layout>
+                <div className="flex justify-center items-center h-64">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                </div>
+            </Layout>
+        );
+    }
 
     return (
         <Layout>
-            <div className="flex justify-between items-center mb-8">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Mes Réclamations</h1>
-                    <p className="mt-1 text-sm text-gray-500">Suivez l'état de vos demandes académiques.</p>
+            <div className="mb-8">
+                <div className="flex justify-between items-center mb-6">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900">Mes Réclamations</h1>
+                        <p className="mt-1 text-sm text-gray-500">
+                            Bienvenue {user?.firstname}, suivez l'état de vos demandes académiques.
+                        </p>
+                    </div>
+                    <Link 
+                        to="/student/create-claim" 
+                        className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                    >
+                        ➕ Nouvelle Réclamation
+                    </Link>
                 </div>
-                <Link to="/student/create-claim" className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-                    + Nouvelle Réclamation
-                </Link>
-            </div>
-            
-            <div className="grid gap-6">
-                {claims.map(claim => (
-                    <div key={claim.id} className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow duration-200 border border-gray-100">
-                        <div className="px-4 py-5 sm:p-6">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <h3 className="text-lg leading-6 font-medium text-gray-900">
-                                        {claim.subject?.label} <span className="text-gray-400 text-sm font-normal">({claim.subject?.code})</span>
-                                    </h3>
-                                    <p className="mt-2 max-w-xl text-sm text-gray-500">
-                                        {claim.reason}
-                                    </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                        <div className="flex items-center">
+                            <div className="flex-shrink-0">
+                                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <span className="text-blue-600 font-semibold text-sm">{counts.all}</span>
                                 </div>
-                                <div className="flex flex-col items-end space-y-2">
-                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
-                                        ${claim.status === 'validee' ? 'bg-green-100 text-green-800' :
-                                          claim.status === 'rejetee' ? 'bg-red-100 text-red-800' :
-                                          'bg-yellow-100 text-yellow-800'}`}>
-                                        {claim.status.replace('_', ' ')}
-                                    </span>
-                                    <span className="text-xs text-gray-400">
-                                        Mis à jour le {new Date(claim.updated_at).toLocaleDateString()}
-                                    </span>
-                                </div>
+                            </div>
+                            <div className="ml-3">
+                                <p className="text-sm font-medium text-gray-900">Total</p>
+                                <p className="text-xs text-gray-500">Réclamations</p>
                             </div>
                         </div>
                     </div>
-                ))}
-                {claims.length === 0 && (
-                    <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-dashed border-gray-300">
-                        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                        </svg>
-                        <h3 className="mt-2 text-sm font-medium text-gray-900">Aucune réclamation</h3>
-                        <p className="mt-1 text-sm text-gray-500">Commencez par créer une nouvelle demande.</p>
-                        <div className="mt-6">
-                            <Link to="/student/create-claim" className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                Créer une réclamation
-                            </Link>
+                    
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                        <div className="flex items-center">
+                            <div className="flex-shrink-0">
+                                <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                                    <span className="text-yellow-600 font-semibold text-sm">{counts.en_cours}</span>
+                                </div>
+                            </div>
+                            <div className="ml-3">
+                                <p className="text-sm font-medium text-gray-900">En cours</p>
+                                <p className="text-xs text-gray-500">Traitement</p>
+                            </div>
                         </div>
+                    </div>
+                    
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                        <div className="flex items-center">
+                            <div className="flex-shrink-0">
+                                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                    <span className="text-green-600 font-semibold text-sm">{counts.validee}</span>
+                                </div>
+                            </div>
+                            <div className="ml-3">
+                                <p className="text-sm font-medium text-gray-900">Validées</p>
+                                <p className="text-xs text-gray-500">Acceptées</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                        <div className="flex items-center">
+                            <div className="flex-shrink-0">
+                                <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                                    <span className="text-red-600 font-semibold text-sm">{counts.rejetee}</span>
+                                </div>
+                            </div>
+                            <div className="ml-3">
+                                <p className="text-sm font-medium text-gray-900">Rejetées</p>
+                                <p className="text-xs text-gray-500">Refusées</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+                    <div className="flex flex-wrap gap-2">
+                        {[
+                            { key: 'all', label: 'Toutes', count: counts.all },
+                            { key: 'en_cours', label: 'En cours', count: counts.en_cours },
+                            { key: 'validee', label: 'Validées', count: counts.validee },
+                            { key: 'rejetee', label: 'Rejetées', count: counts.rejetee }
+                        ].map((filterOption) => (
+                            <button
+                                key={filterOption.key}
+                                onClick={() => setFilter(filterOption.key)}
+                                className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                                    filter === filterOption.key
+                                        ? 'bg-blue-600 text-white'
+                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                            >
+                                {filterOption.label}
+                                {filterOption.count > 0 && (
+                                    <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
+                                        filter === filterOption.key
+                                            ? 'bg-blue-500 text-white'
+                                            : 'bg-gray-300 text-gray-600'
+                                    }`}>
+                                        {filterOption.count}
+                                    </span>
+                                )}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+            
+            <div className="space-y-4">
+                {filteredClaims.map(claim => (
+                    <ClaimCard 
+                        key={claim.id} 
+                        claim={claim}
+                        canProcess={false}
+                        showActions={false}
+                    />
+                ))}
+                
+                {filteredClaims.length === 0 && claims.length === 0 && (
+                    <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-dashed border-gray-300">
+                        <div className="mx-auto h-12 w-12 text-gray-400 text-4xl mb-4">📋</div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune réclamation</h3>
+                        <p className="text-sm text-gray-500 mb-6">Commencez par créer votre première demande de réclamation.</p>
+                        <Link 
+                            to="/student/create-claim" 
+                            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                            ➕ Créer une réclamation
+                        </Link>
+                    </div>
+                )}
+                
+                {filteredClaims.length === 0 && claims.length > 0 && (
+                    <div className="text-center py-8 bg-white rounded-lg shadow-sm border border-gray-200">
+                        <div className="mx-auto h-12 w-12 text-gray-400 text-4xl mb-4">🔍</div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun résultat</h3>
+                        <p className="text-sm text-gray-500">Aucune réclamation ne correspond au filtre sélectionné.</p>
                     </div>
                 )}
             </div>

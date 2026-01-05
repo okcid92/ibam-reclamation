@@ -13,7 +13,13 @@ return new class extends Migration
             $table->string('nom', 100);
             $table->string('prenom', 100);
             $table->string('mot_de_passe');
-            $table->enum('role', ['ETUDIANT', 'SCOLARITE', 'ENSEIGNANT', 'DIRECTEUR_ACADEMIQUE', 'DIRECTEUR_ADJOINT']);
+            $table->enum('role', [
+                'ETUDIANT', 
+                'SCOLARITE', 
+                'ENSEIGNANT', 
+                'DIRECTEUR_ACADEMIQUE', 
+                'DIRECTEUR_ACADEMIQUE_ADJOINT'
+            ]);
             $table->enum('statut', ['ACTIF', 'INACTIF'])->default('ACTIF');
             $table->timestamps();
         });

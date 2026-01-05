@@ -3,9 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 class AuthController extends Controller
 {
@@ -19,43 +18,107 @@ class AuthController extends Controller
         $login = $request->login;
         $password = $request->password;
 
-        // Tentative de connexion par email
-        $user = User::where('email', $login)->first();
-        
-        // Si pas trouvé par email, chercher par INE
+        $user = null;
+
+        // Vérifier si c'est un INE (étudiant)
+        if (preg_match('/^[A-Z]\d+$/', $login)) {
+            // Recherche par INE dans la table etudiants
+            $etudiant = DB::table('etudiants')
+                ->join('utilisateurs', 'etudiants.id_utilisateur', '=', 'utilisateurs.id_utilisateur')
+                ->where('etudiants.ine', $login)
+                ->select('utilisateurs.*', 'etudiants.ine', 'etudiants.filiere', 'etudiants.niveau')
+                ->first();
+            
+            if ($etudiant) {
+                $user = $etudiant;
+            }
+        } else {
+            // Recherche par identifiant/email pour le personnel
+            $user = DB::table('utilisateurs')
+                ->where('role', '!=', 'ETUDIANT')
+                ->where(function($query) use ($login) {
+                    $query->where('email', $login)
+                          ->orWhere('identifiant_interne', $login);
+                })
+                ->first();
+        }
+
         if (!$user) {
-            $student = \App\Models\Student::where('ine', $login)->first();
-            if ($student) {
-                $user = $student->user;
-            }
+            return response()->json(['message' => 'Accès refusé. Veuillez contacter la scolarité.'], 401);
         }
 
-        if ($user && Hash::check($password, $user->password)) {
-            if ($user->status === 'INACTIF') {
-                return response()->json(['message' => 'Compte inactif'], 403);
-            }
-            
-            $token = $user->createToken('auth-token')->plainTextToken;
-            $userData = $user->load(['student', 'teacher']);
-            
-            return response()->json([
-                'token' => $token, 
-                'user' => $userData, 
-                'role' => $user->role
-            ]);
+        if (!Hash::check($password, $user->mot_de_passe)) {
+            return response()->json(['message' => 'Accès refusé. Veuillez contacter la scolarité.'], 401);
         }
 
-        return response()->json(['message' => 'Identifiants invalides'], 401);
+        if ($user->statut === 'INACTIF') {
+            return response()->json(['message' => 'Accès refusé. Veuillez contacter la scolarité.'], 403);
+        }
+        // Créer un token simple (pour la démo)
+        $token = base64_encode($user->id_utilisateur . ':' . time());
+        
+        return response()->json([
+            'token' => $token,
+            'user' => [
+                'id' => $user->id_utilisateur,
+                'firstname' => $user->prenom,
+                'lastname' => $user->nom,
+                'role' => $user->role,
+                'status' => $user->statut,
+                'ine' => $user->ine ?? null,
+                'filiere' => $user->filiere ?? null,
+                'niveau' => $user->niveau ?? null
+            ]
+        ]);
     }
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
         return response()->json(['message' => 'Déconnecté']);
     }
 
     public function user(Request $request)
     {
-        return response()->json($request->user());
+        $token = $request->bearerToken();
+        if (!$token) {
+            return response()->json(['message' => 'Token manquant'], 401);
+        }
+
+        $decoded = base64_decode($token);
+        $parts = explode(':', $decoded);
+        $userId = $parts[0] ?? null;
+
+        if (!$userId) {
+            return response()->json(['message' => 'Token invalide'], 401);
+        }
+
+        $user = DB::table('utilisateurs')->where('id_utilisateur', $userId)->first();
+        
+        if (!$user) {
+            return response()->json(['message' => 'Utilisateur non trouvé'], 404);
+        }
+
+        // Si c'est un étudiant, récupérer les infos supplémentaires
+        if ($user->role === 'ETUDIANT') {
+            $etudiant = DB::table('etudiants')->where('id_utilisateur', $userId)->first();
+            return response()->json([
+                'id' => $user->id_utilisateur,
+                'firstname' => $user->prenom,
+                'lastname' => $user->nom,
+                'role' => $user->role,
+                'status' => $user->statut,
+                'ine' => $etudiant->ine ?? null,
+                'filiere' => $etudiant->filiere ?? null,
+                'niveau' => $etudiant->niveau ?? null
+            ]);
+        }
+
+        return response()->json([
+            'id' => $user->id_utilisateur,
+            'firstname' => $user->prenom,
+            'lastname' => $user->nom,
+            'role' => $user->role,
+            'status' => $user->statut
+        ]);
     }
 }

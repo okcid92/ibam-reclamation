@@ -5,19 +5,53 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import DashboardStudent from './pages/DashboardStudent';
-import DashboardStaff from './pages/DashboardStaff';
+import DashboardTeacher from './pages/DashboardTeacher';
+import DashboardScolarite from './pages/DashboardScolarite';
+import DashboardDirector from './pages/DashboardDirector';
+import DashboardAssistantDirector from './pages/DashboardAssistantDirector';
 import CreateClaim from './pages/CreateClaim';
 
-const PrivateRoute = ({ children, role }) => {
+const PrivateRoute = ({ children, allowedRoles }) => {
     const { user, loading } = useAuth();
-    if (loading) return <div>Chargement...</div>;
+    
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+        );
+    }
+    
     if (!user) return <Navigate to="/login" />;
     
-    // Simple role check logic
-    if (role === 'ETUDIANT' && user.role !== 'ETUDIANT') return <Navigate to="/staff/dashboard" />;
-    if (role === 'STAFF' && user.role === 'ETUDIANT') return <Navigate to="/student/dashboard" />;
+    if (allowedRoles && !allowedRoles.includes(user.role)) {
+        return <Navigate to={getDefaultRoute(user.role)} />;
+    }
     
     return children;
+};
+
+const getDefaultRoute = (role) => {
+    switch (role) {
+        case 'ETUDIANT':
+            return '/student/dashboard';
+        case 'ENSEIGNANT':
+            return '/teacher/dashboard';
+        case 'SCOLARITE':
+            return '/scolarite/dashboard';
+        case 'DIRECTEUR_ACADEMIQUE':
+            return '/director/dashboard';
+        case 'DIRECTEUR_ACADEMIQUE_ADJOINT':
+            return '/assistant-director/dashboard';
+        default:
+            return '/login';
+    }
+};
+
+const RedirectToRole = () => {
+    const { user } = useAuth();
+    if (!user) return <Navigate to="/login" />;
+    return <Navigate to={getDefaultRoute(user.role)} />;
 };
 
 function App() {
@@ -25,25 +59,44 @@ function App() {
         <AuthProvider>
             <Routes>
                 <Route path="/login" element={<Login />} />
-                <Route path="/" element={<Navigate to="/login" />} />
+                <Route path="/" element={<RedirectToRole />} />
                 
                 <Route path="/student/dashboard" element={
-                    <PrivateRoute role="ETUDIANT">
+                    <PrivateRoute allowedRoles={['ETUDIANT']}>
                         <DashboardStudent />
                     </PrivateRoute>
                 } />
-
                 <Route path="/student/create-claim" element={
-                    <PrivateRoute role="ETUDIANT">
+                    <PrivateRoute allowedRoles={['ETUDIANT']}>
                         <CreateClaim />
                     </PrivateRoute>
                 } />
                 
-                <Route path="/staff/dashboard" element={
-                    <PrivateRoute role="STAFF">
-                        <DashboardStaff />
+                <Route path="/teacher/dashboard" element={
+                    <PrivateRoute allowedRoles={['ENSEIGNANT']}>
+                        <DashboardTeacher />
                     </PrivateRoute>
                 } />
+                
+                <Route path="/scolarite/dashboard" element={
+                    <PrivateRoute allowedRoles={['SCOLARITE']}>
+                        <DashboardScolarite />
+                    </PrivateRoute>
+                } />
+                
+                <Route path="/director/dashboard" element={
+                    <PrivateRoute allowedRoles={['DIRECTEUR_ACADEMIQUE']}>
+                        <DashboardDirector />
+                    </PrivateRoute>
+                } />
+                
+                <Route path="/assistant-director/dashboard" element={
+                    <PrivateRoute allowedRoles={['DIRECTEUR_ACADEMIQUE_ADJOINT']}>
+                        <DashboardAssistantDirector />
+                    </PrivateRoute>
+                } />
+                
+                <Route path="*" element={<RedirectToRole />} />
             </Routes>
         </AuthProvider>
     );

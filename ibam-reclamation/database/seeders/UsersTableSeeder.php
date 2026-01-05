@@ -3,58 +3,68 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class UsersTableSeeder extends Seeder
 {
     public function run()
     {
-        // Étudiants
-        User::create([
-            'lastname' => 'Dicko',
-            'firstname' => 'Alou',
-            'email' => 'alou.dicko@etudiant.ibam.edu',
-            'password' => Hash::make('password'),
-            'role' => 'ETUDIANT',
-            'status' => 'ACTIF'
-        ]);
-
-        User::create([
-            'lastname' => 'Naba',
-            'firstname' => 'Albert',
-            'email' => 'albert.naba@etudiant.ibam.edu',
-            'password' => Hash::make('password'),
-            'role' => 'ETUDIANT',
-            'status' => 'ACTIF'
-        ]);
-
-        // Personnel
-        User::create([
-            'lastname' => 'Agent',
-            'firstname' => 'Scolarite',
-            'email' => 'scolarite@ibam.edu',
-            'password' => Hash::make('password'),
-            'role' => 'SCOLARITE',
-            'status' => 'ACTIF'
-        ]);
-
-        User::create([
-            'lastname' => 'Traore',
-            'firstname' => 'Yaya',
-            'email' => 'enseignant@ibam.edu',
-            'password' => Hash::make('password'),
-            'role' => 'ENSEIGNANT',
-            'status' => 'ACTIF'
-        ]);
-
-        User::create([
-            'lastname' => 'Bayili',
-            'firstname' => 'Gilbert',
-            'email' => 'directeur@ibam.edu',
-            'password' => Hash::make('password'),
-            'role' => 'DIRECTEUR_ACADEMIQUE',
-            'status' => 'ACTIF'
+        DB::table('utilisateurs')->insert([
+            [
+                'nom' => 'Dicko',
+                'prenom' => 'Alou',
+                'mot_de_passe' => Hash::make('password'),
+                'role' => 'ETUDIANT',
+                'statut' => 'ACTIF',
+                'email' => null,
+                'identifiant_interne' => null
+            ],
+            [
+                'nom' => 'Naba', 
+                'prenom' => 'Albert',
+                'mot_de_passe' => Hash::make('password'),
+                'role' => 'ETUDIANT',
+                'statut' => 'ACTIF',
+                'email' => null,
+                'identifiant_interne' => null
+            ],
+            [
+                'nom' => 'Agent',
+                'prenom' => 'Scolarite',
+                'email' => 'scolarite@ibam.edu',
+                'identifiant_interne' => 'SCOL001',
+                'mot_de_passe' => Hash::make('password'),
+                'role' => 'SCOLARITE',
+                'statut' => 'ACTIF'
+            ],
+            [
+                'nom' => 'Traore',
+                'prenom' => 'Yaya',
+                'email' => 'yaya.traore@ibam.edu',
+                'identifiant_interne' => 'ENS001',
+                'mot_de_passe' => Hash::make('password'),
+                'role' => 'ENSEIGNANT',
+                'statut' => 'ACTIF'
+            ],
+            [
+                'nom' => 'Bayili',
+                'prenom' => 'Gilbert',
+                'email' => 'gilbert.bayili@ibam.edu',
+                'identifiant_interne' => 'DIR001',
+                'mot_de_passe' => Hash::make('password'),
+                'role' => 'DIRECTEUR_ACADEMIQUE',
+                'statut' => 'ACTIF'
+            ],
+            [
+                'nom' => 'Adjoint',
+                'prenom' => 'Directeur',
+                'email' => 'adjoint.directeur@ibam.edu',
+                'identifiant_interne' => 'ADJ001',
+                'mot_de_passe' => Hash::make('password'),
+                'role' => 'DIRECTEUR_ACADEMIQUE_ADJOINT',
+                'statut' => 'ACTIF'
+            ]
         ]);
     }
 }

@@ -1,6 +1,11 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 
+// Configuration de base pour axios
+axios.defaults.baseURL = 'http://127.0.0.1:8000';
+axios.defaults.headers.common['Content-Type'] = 'application/json';
+axios.defaults.headers.common['Accept'] = 'application/json';
+
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {

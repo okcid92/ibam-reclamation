@@ -11,7 +11,7 @@ class EnseignantsTableSeeder extends Seeder
     {
         DB::table('enseignants')->insert([
             [
-                'id_utilisateur' => 3, // Prof Dr Traore
+                'id_utilisateur' => 4, // Yaya Traore (ENSEIGNANT)
                 'specialite' => 'Analyse et Conception Orientée Objet',
             ],
         ]);
