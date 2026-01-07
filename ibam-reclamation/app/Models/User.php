@@ -11,18 +11,21 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable, HasApiTokens;
 
+    protected $table = 'utilisateurs';
+    protected $primaryKey = 'id_utilisateur';
+
     protected $fillable = [
-        'lastname',
-        'firstname',
+        'nom',
+        'prenom',
         'email',
-        'ine',
-        'password',
+        'identifiant_interne',
+        'mot_de_passe',
         'role',
-        'status',
+        'statut',
     ];
 
     protected $hidden = [
-        'password',
+        'mot_de_passe',
         'remember_token',
     ];
 
@@ -30,25 +33,43 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'mot_de_passe' => 'hashed',
         ];
+    }
+
+    public function getAuthPassword()
+    {
+        return $this->mot_de_passe;
     }
 
     public function student()
     {
-        return $this->hasOne(Student::class);
+        return $this->hasOne(Student::class, 'id_utilisateur');
     }
 
     public function teacher()
     {
-        return $this->hasOne(Teacher::class);
+        return $this->hasOne(Teacher::class, 'id_utilisateur');
     }
 
-    // Méthode pour trouver un utilisateur par INE ou email
+    // Méthode pour trouver un utilisateur par INE ou email ou identifiant
     public static function findByLoginCredential($login)
     {
-        return static::where('email', $login)
-            ->orWhere('ine', $login)
+        // On cherche d'abord dans les colonnes standard
+        $user = static::where('email', $login)
+            ->orWhere('identifiant_interne', $login)
             ->first();
+            
+        if ($user) {
+            return $user;
+        }
+
+        // Si non trouvé, on regarde si c'est un étudiant via son INE
+        $student = Student::where('ine', $login)->first();
+        if ($student) {
+            return $student->user;
+        }
+
+        return null;
     }
 }

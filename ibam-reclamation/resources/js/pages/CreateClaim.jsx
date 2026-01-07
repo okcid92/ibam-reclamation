@@ -45,7 +45,7 @@ export default function CreateClaim() {
             setError('');
         }
         
-        setFiles(validFiles);
+        setFiles(prevFiles => [...prevFiles, ...validFiles]);
     };
 
     const removeFile = (index) => {
@@ -258,12 +258,12 @@ export default function CreateClaim() {
                             </div>
                             
                             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                <h3 className="text-sm font-medium text-blue-800 mb-2">ℹ️ Informations importantes</h3>
+                                <h3 className="text-sm font-medium text-blue-800 mb-2">ℹ️ Processus de traitement</h3>
                                 <ul className="text-xs text-blue-700 space-y-1">
-                                    <li>• Votre réclamation sera d'abord vérifiée par la scolarité</li>
-                                    <li>• Si recevable, elle sera transmise au directeur académique puis à l'enseignant</li>
-                                    <li>• Vous recevrez des notifications à chaque étape du processus</li>
-                                    <li>• Le traitement peut prendre plusieurs jours selon la complexité</li>
+                                    <li>1️⃣ <strong>Scolarité:</strong> Vérifie la recevabilité (fichiers, délais)</li>
+                                    <li>2️⃣ <strong>Directeur Adjoint:</strong> Transmet à l'enseignant concerné</li>
+                                    <li>3️⃣ <strong>Enseignant:</strong> Analyse et donne son avis (favorable/défavorable)</li>
+                                    <li>4️⃣ <strong>Notification:</strong> Vous serez informé du résultat final</li>
                                 </ul>
                             </div>
                             

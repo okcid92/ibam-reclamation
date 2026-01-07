@@ -17,8 +17,7 @@ export default function Layout({ children }) {
             'ETUDIANT': 'Étudiant',
             'ENSEIGNANT': 'Enseignant',
             'SCOLARITE': 'Scolarité',
-            'DIRECTEUR_ACADEMIQUE': 'Directeur Académique',
-            'DIRECTEUR_ACADEMIQUE_ADJOINT': 'DA Adjoint'
+            'DIRECTEUR_ADJOINT': 'Directeur Adjoint'
         };
         return roleNames[role] || role;
     };
@@ -42,15 +41,9 @@ export default function Layout({ children }) {
                     { path: '/scolarite/dashboard', label: 'Gestion Réclamations', icon: '🏫' },
                     { path: '/scolarite/students', label: 'Étudiants', icon: '👥' }
                 ];
-            case 'DIRECTEUR_ACADEMIQUE':
+            case 'DIRECTEUR_ADJOINT':
                 return [
-                    { path: '/director/dashboard', label: 'Supervision', icon: '👨💼' },
-                    { path: '/director/reports', label: 'Rapports', icon: '📊' }
-                ];
-            case 'DIRECTEUR_ACADEMIQUE_ADJOINT':
-                return [
-                    { path: '/assistant-director/dashboard', label: 'Validation', icon: '✅' },
-                    { path: '/assistant-director/reports', label: 'Rapports', icon: '📈' }
+                    { path: '/da/dashboard', label: 'Validation', icon: '✅' }
                 ];
             default:
                 return [];

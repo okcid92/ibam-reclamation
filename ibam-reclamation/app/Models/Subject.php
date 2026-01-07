@@ -9,10 +9,13 @@ class Subject extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['code', 'label'];
+    protected $table = 'matieres';
+    protected $primaryKey = 'id_matiere';
+
+    protected $fillable = ['code_matiere', 'libelle'];
 
     public function teachers()
     {
-        return $this->belongsToMany(Teacher::class, 'teacher_subjects');
+        return $this->belongsToMany(Teacher::class, 'enseignant_matieres', 'id_matiere', 'id_enseignant');
     }
 }

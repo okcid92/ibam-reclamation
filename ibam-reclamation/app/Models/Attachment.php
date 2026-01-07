@@ -9,10 +9,13 @@ class Attachment extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['claim_id', 'filename', 'filepath', 'filetype'];
+    protected $table = 'pieces_jointes';
+    protected $primaryKey = 'id_piece';
+
+    protected $fillable = ['id_reclamation', 'nom_fichier', 'chemin_fichier', 'type_fichier'];
 
     public function claim()
     {
-        return $this->belongsTo(Claim::class);
+        return $this->belongsTo(Claim::class, 'id_reclamation');
     }
 }

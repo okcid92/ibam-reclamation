@@ -17,27 +17,26 @@ return new class extends Migration
             $table->decimal('note_actuelle', 5, 2)->nullable();
             $table->decimal('note_souhaitee', 5, 2)->nullable();
             $table->decimal('note_corrigee', 5, 2)->nullable();
-            
+
             $table->enum('statut', [
                 'SOUMISE',
                 'REJETEE',
-                'VALIDEE', 
+                'VALIDEE',
                 'NON_VALIDEE',
                 'TERMINEE'
             ])->default('SOUMISE');
-            
+
             $table->enum('etape_actuelle', [
                 'SCOLARITE',
-                'DIRECTEUR_ACADEMIQUE', 
-                'ENSEIGNANT',
-                'DIRECTEUR_ADJOINT'
-            ])->default('SCOLARITE');
-            
+                'DIRECTEUR_ADJOINT',
+                'ENSEIGNANT'
+            ])->nullable()->default('SCOLARITE');
+
             $table->text('decision')->nullable();
             $table->timestamp('date_depot')->useCurrent();
             $table->timestamp('date_traitement')->nullable();
             $table->timestamps();
-            
+
             $table->foreign('id_etudiant')->references('id_etudiant')->on('etudiants');
             $table->foreign('id_matiere')->references('id_matiere')->on('matieres');
         });
@@ -51,7 +50,7 @@ return new class extends Migration
             $table->string('chemin_fichier');
             $table->timestamp('date_upload')->useCurrent();
             $table->timestamps();
-            
+
             $table->foreign('id_reclamation')->references('id_reclamation')->on('reclamations')->onDelete('cascade');
         });
 
@@ -64,7 +63,7 @@ return new class extends Migration
             $table->text('commentaire')->nullable();
             $table->timestamp('date_action')->useCurrent();
             $table->timestamps();
-            
+
             $table->foreign('id_reclamation')->references('id_reclamation')->on('reclamations');
             $table->foreign('id_utilisateur')->references('id_utilisateur')->on('utilisateurs');
         });

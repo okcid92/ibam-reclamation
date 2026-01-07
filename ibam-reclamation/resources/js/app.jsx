@@ -7,7 +7,6 @@ import Login from './pages/Login';
 import DashboardStudent from './pages/DashboardStudent';
 import DashboardTeacher from './pages/DashboardTeacher';
 import DashboardScolarite from './pages/DashboardScolarite';
-import DashboardDirector from './pages/DashboardDirector';
 import DashboardAssistantDirector from './pages/DashboardAssistantDirector';
 import CreateClaim from './pages/CreateClaim';
 
@@ -39,10 +38,8 @@ const getDefaultRoute = (role) => {
             return '/teacher/dashboard';
         case 'SCOLARITE':
             return '/scolarite/dashboard';
-        case 'DIRECTEUR_ACADEMIQUE':
-            return '/director/dashboard';
-        case 'DIRECTEUR_ACADEMIQUE_ADJOINT':
-            return '/assistant-director/dashboard';
+        case 'DIRECTEUR_ADJOINT':
+            return '/da/dashboard';
         default:
             return '/login';
     }
@@ -84,17 +81,15 @@ function App() {
                     </PrivateRoute>
                 } />
                 
-                <Route path="/director/dashboard" element={
-                    <PrivateRoute allowedRoles={['DIRECTEUR_ACADEMIQUE']}>
-                        <DashboardDirector />
-                    </PrivateRoute>
-                } />
-                
-                <Route path="/assistant-director/dashboard" element={
-                    <PrivateRoute allowedRoles={['DIRECTEUR_ACADEMIQUE_ADJOINT']}>
+                <Route path="/da/dashboard" element={
+                    <PrivateRoute allowedRoles={['DIRECTEUR_ADJOINT']}>
                         <DashboardAssistantDirector />
                     </PrivateRoute>
                 } />
+                
+                {/* Redirect old routes */}
+                <Route path="/director/dashboard" element={<Navigate to="/da/dashboard" />} />
+                <Route path="/assistant-director/dashboard" element={<Navigate to="/da/dashboard" />} />
                 
                 <Route path="*" element={<RedirectToRole />} />
             </Routes>

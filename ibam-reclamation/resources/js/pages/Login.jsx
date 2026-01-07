@@ -28,11 +28,8 @@ export default function Login() {
                 case 'SCOLARITE':
                     navigate('/scolarite/dashboard');
                     break;
-                case 'DIRECTEUR_ACADEMIQUE':
-                    navigate('/director/dashboard');
-                    break;
-                case 'DIRECTEUR_ACADEMIQUE_ADJOINT':
-                    navigate('/assistant-director/dashboard');
+                case 'DIRECTEUR_ADJOINT':
+                    navigate('/da/dashboard');
                     break;
                 default:
                     navigate('/');

@@ -23,8 +23,7 @@ const ClaimFilters = ({ currentFilter, onFilterChange, userRole, claimCounts = {
                     { key: 'my_subjects', label: 'Mes matières', count: claimCounts.my_subjects || 0 },
                     ...baseFilters.slice(1)
                 ];
-            case 'DIRECTEUR_ACADEMIQUE':
-            case 'DIRECTEUR_ACADEMIQUE_ADJOINT':
+            case 'DIRECTEUR_ADJOINT':
                 return [
                     ...baseFilters.slice(0, 1),
                     { key: 'my_stage', label: 'À traiter', count: claimCounts.my_stage || 0 },

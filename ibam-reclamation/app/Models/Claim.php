@@ -9,35 +9,39 @@ class Claim extends Model
 {
     use HasFactory;
 
+    protected $table = 'reclamations';
+    protected $primaryKey = 'id_reclamation';
+
     protected $fillable = [
-        'student_id',
-        'subject_id',
-        'reason',
-        'initial_grade',
-        'corrected_grade',
-        'status',
-        'current_stage',
+        'id_etudiant',
+        'id_matiere',
+        'motif',
+        'note_actuelle',
+        'note_souhaitee',
+        'note_corrigee',
+        'statut',
+        'etape_actuelle',
         'decision',
-        'processed_at'
+        'date_traitement'
     ];
 
     public function student()
     {
-        return $this->belongsTo(Student::class);
+        return $this->belongsTo(Student::class, 'id_etudiant');
     }
 
     public function subject()
     {
-        return $this->belongsTo(Subject::class);
+        return $this->belongsTo(Subject::class, 'id_matiere');
     }
 
     public function attachments()
     {
-        return $this->hasMany(Attachment::class);
+        return $this->hasMany(Attachment::class, 'id_reclamation');
     }
 
     public function history()
     {
-        return $this->hasMany(ClaimHistory::class);
+        return $this->hasMany(ClaimHistory::class, 'id_reclamation');
     }
 }

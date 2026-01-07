@@ -2,13 +2,13 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Layout from '../layouts/Layout';
 import ClaimCard from '../components/ClaimCard';
-import ClaimFilters from '../components/ClaimFilters';
 import { useAuth } from '../context/AuthContext';
 
 export default function DashboardAssistantDirector() {
     const [claims, setClaims] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState('my_stage');
+    const [filter, setFilter] = useState('a_transmettre');
+    const [successMessage, setSuccessMessage] = useState('');
     const { user } = useAuth();
 
     useEffect(() => {
@@ -16,6 +16,7 @@ export default function DashboardAssistantDirector() {
     }, []);
 
     const fetchData = async () => {
+        setLoading(true);
         try {
             const response = await axios.get('/api/claims');
             setClaims(response.data);
@@ -31,8 +32,10 @@ export default function DashboardAssistantDirector() {
             const payload = { action, comment };
             if (correctedGrade) payload.corrected_grade = correctedGrade;
             
-            await axios.put(`/api/claims/${claimId}`, payload);
+            const response = await axios.put(`/api/claims/${claimId}`, payload);
+            setSuccessMessage(response.data.message || 'Action effectuée avec succès');
             await fetchData();
+            setTimeout(() => setSuccessMessage(''), 3000);
         } catch (error) {
             alert('Erreur: ' + (error.response?.data?.message || 'Une erreur est survenue'));
         }
@@ -40,35 +43,58 @@ export default function DashboardAssistantDirector() {
 
     const getFilteredClaims = () => {
         switch (filter) {
-            case 'my_stage':
-                return claims.filter(claim => claim.current_stage === 'DIRECTEUR_ACADEMIQUE_ADJOINT');
-            case 'en_cours':
-                return claims.filter(claim => ['en_cours', 'en_attente_da_adjoint'].includes(claim.status));
-            case 'validee':
-                return claims.filter(claim => claim.status === 'validee');
-            case 'rejetee':
-                return claims.filter(claim => claim.status === 'rejetee');
+            case 'a_transmettre':
+                // Réclamations à l'étape DA avec statut SOUMISE (venant de Scolarité)
+                return claims.filter(claim => 
+                    claim.current_step === 'DIRECTEUR_ADJOINT' && claim.status === 'SOUMISE'
+                );
+            case 'avis_recu':
+                // Réclamations revenues de l'Enseignant (avec avis)
+                return claims.filter(claim => 
+                    claim.current_step === 'DIRECTEUR_ADJOINT' && 
+                    ['VALIDEE', 'NON_VALIDEE'].includes(claim.status)
+                );
+            case 'terminees':
+                return claims.filter(claim => claim.status === 'TERMINEE');
+            case 'rejetees':
+                return claims.filter(claim => claim.status === 'REJETEE');
             default:
                 return claims;
         }
     };
 
     const canProcess = (claim) => {
-        return claim.current_stage === 'DIRECTEUR_ACADEMIQUE_ADJOINT';
+        return claim.current_step === 'DIRECTEUR_ADJOINT';
     };
 
     const getClaimCounts = () => {
+        const aTransmettre = claims.filter(claim => 
+            claim.current_step === 'DIRECTEUR_ADJOINT' && claim.status === 'SOUMISE'
+        ).length;
+        const avisRecu = claims.filter(claim => 
+            claim.current_step === 'DIRECTEUR_ADJOINT' && 
+            ['VALIDEE', 'NON_VALIDEE'].includes(claim.status)
+        ).length;
+        
         return {
             all: claims.length,
-            my_stage: claims.filter(claim => claim.current_stage === 'DIRECTEUR_ACADEMIQUE_ADJOINT').length,
-            en_cours: claims.filter(claim => ['en_cours', 'en_attente_da_adjoint'].includes(claim.status)).length,
-            validee: claims.filter(claim => claim.status === 'validee').length,
-            rejetee: claims.filter(claim => claim.status === 'rejetee').length
+            a_transmettre: aTransmettre,
+            avis_recu: avisRecu,
+            terminees: claims.filter(claim => claim.status === 'TERMINEE').length,
+            rejetees: claims.filter(claim => claim.status === 'REJETEE').length
         };
     };
 
     const filteredClaims = getFilteredClaims();
     const counts = getClaimCounts();
+
+    const filterOptions = [
+        { key: 'all', label: 'Toutes', count: counts.all },
+        { key: 'a_transmettre', label: 'À transmettre au Prof', count: counts.a_transmettre },
+        { key: 'avis_recu', label: 'Avis reçu → Scolarité', count: counts.avis_recu },
+        { key: 'terminees', label: 'Terminées', count: counts.terminees },
+        { key: 'rejetees', label: 'Rejetées', count: counts.rejetees }
+    ];
 
     if (loading) {
         return (
@@ -83,77 +109,46 @@ export default function DashboardAssistantDirector() {
     return (
         <Layout>
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Validation Académique</h1>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">🎓 Directeur Adjoint</h1>
                 <p className="text-sm text-gray-500">
-                    Directeur Académique Adjoint - Validation des décisions et transmission à la scolarité
+                    Transmission des réclamations aux enseignants et retour à la scolarité
                 </p>
             </div>
 
-            {/* Statistiques */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                    <div className="flex items-center">
-                        <div className="flex-shrink-0">
-                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                <span className="text-blue-600 font-semibold text-sm">{counts.all}</span>
-                            </div>
-                        </div>
-                        <div className="ml-3">
-                            <p className="text-sm font-medium text-gray-900">Total</p>
-                            <p className="text-xs text-gray-500">Réclamations</p>
-                        </div>
-                    </div>
+            {/* Message de succès */}
+            {successMessage && (
+                <div className="mb-6 p-4 bg-green-100 border border-green-300 text-green-800 rounded-lg flex items-center">
+                    <span className="mr-2">✅</span>
+                    {successMessage}
                 </div>
-                
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                    <div className="flex items-center">
-                        <div className="flex-shrink-0">
-                            <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                                <span className="text-orange-600 font-semibold text-sm">{counts.my_stage}</span>
-                            </div>
-                        </div>
-                        <div className="ml-3">
-                            <p className="text-sm font-medium text-gray-900">À valider</p>
-                            <p className="text-xs text-gray-500">Urgent</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                    <div className="flex items-center">
-                        <div className="flex-shrink-0">
-                            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                <span className="text-green-600 font-semibold text-sm">{counts.validee}</span>
-                            </div>
-                        </div>
-                        <div className="ml-3">
-                            <p className="text-sm font-medium text-gray-900">Validées</p>
-                            <p className="text-xs text-gray-500">Finalisées</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                    <div className="flex items-center">
-                        <div className="flex-shrink-0">
-                            <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                                <span className="text-red-600 font-semibold text-sm">{counts.rejetee}</span>
-                            </div>
-                        </div>
-                        <div className="ml-3">
-                            <p className="text-sm font-medium text-gray-900">Rejetées</p>
-                            <p className="text-xs text-gray-500">Refusées</p>
-                        </div>
-                    </div>
+            )}
+
+            {/* Légende du workflow */}
+            <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                <h3 className="font-medium text-purple-800 mb-2">📋 Workflow DA:</h3>
+                <div className="text-sm text-purple-700 flex flex-wrap gap-4">
+                    <span>1️⃣ <strong>Réception:</strong> Dossier vérifié par Scolarité</span>
+                    <span>2️⃣ <strong>Transmission:</strong> Envoyer à l'Enseignant concerné</span>
+                    <span>3️⃣ <strong>Retour:</strong> Avis reçu → Retransmettre à Scolarité</span>
                 </div>
             </div>
 
-            <ClaimFilters 
-                currentFilter={filter}
-                onFilterChange={setFilter}
-                userRole="DIRECTEUR_ACADEMIQUE_ADJOINT"
-                claimCounts={counts}
-            />
+            {/* Filtres */}
+            <div className="flex flex-wrap gap-2 mb-6">
+                {filterOptions.map(opt => (
+                    <button
+                        key={opt.key}
+                        onClick={() => setFilter(opt.key)}
+                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                            filter === opt.key
+                                ? 'bg-purple-600 text-white'
+                                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                        }`}
+                    >
+                        {opt.label} ({opt.count})
+                    </button>
+                ))}
+            </div>
 
             <div className="space-y-4">
                 {filteredClaims.map(claim => (
@@ -162,20 +157,17 @@ export default function DashboardAssistantDirector() {
                         claim={claim}
                         onAction={handleAction}
                         canProcess={canProcess(claim)}
-                        userRole="DIRECTEUR_ACADEMIQUE_ADJOINT"
+                        userRole="DIRECTEUR_ADJOINT"
                         showActions={true}
                     />
                 ))}
                 
                 {filteredClaims.length === 0 && (
                     <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
-                        <div className="mx-auto h-12 w-12 text-gray-400 text-4xl mb-4">✅</div>
+                        <div className="mx-auto h-12 w-12 text-gray-400 text-4xl mb-4">📭</div>
                         <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune réclamation</h3>
                         <p className="text-sm text-gray-500">
-                            {filter === 'my_stage' 
-                                ? 'Aucune réclamation à valider pour le moment.'
-                                : 'Aucune réclamation ne correspond au filtre sélectionné.'
-                            }
+                            Aucune réclamation ne correspond au filtre sélectionné.
                         </p>
                     </div>
                 )}

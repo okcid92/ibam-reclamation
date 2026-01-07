@@ -15,10 +15,9 @@ echo     - INE: N01331820231 / password (Alou Dicko)
 echo     - INE: N01331820232 / password (Albert Naba)
 echo.
 echo   Personnel (connexion par email):
-echo     - scolarite@ibam.edu / password (Scolarite)
-echo     - enseignant@ibam.edu / password (Yaya Traore)
-echo     - directeur@ibam.edu / password (Gilbert Bayili)
-echo     - da.adjoint@ibam.edu / password (Directeur Adjoint)
+echo     - scolarite@ibam.edu / password (Agent Scolarite)
+echo     - yaya.traore@ibam.edu / password (Yaya Traore - Enseignant)
+echo     - adjoint.directeur@ibam.edu / password (Directeur Adjoint)
 echo.
 echo ========================================
 echo.

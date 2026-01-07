@@ -21,7 +21,7 @@ class UsersTableSeeder extends Seeder
                 'identifiant_interne' => null
             ],
             [
-                'nom' => 'Naba', 
+                'nom' => 'Naba',
                 'prenom' => 'Albert',
                 'mot_de_passe' => Hash::make('password'),
                 'role' => 'ETUDIANT',
@@ -48,21 +48,12 @@ class UsersTableSeeder extends Seeder
                 'statut' => 'ACTIF'
             ],
             [
-                'nom' => 'Bayili',
-                'prenom' => 'Gilbert',
-                'email' => 'gilbert.bayili@ibam.edu',
-                'identifiant_interne' => 'DIR001',
-                'mot_de_passe' => Hash::make('password'),
-                'role' => 'DIRECTEUR_ACADEMIQUE',
-                'statut' => 'ACTIF'
-            ],
-            [
-                'nom' => 'Adjoint',
-                'prenom' => 'Directeur',
+                'nom' => 'Directeur',
+                'prenom' => 'Adjoint',
                 'email' => 'adjoint.directeur@ibam.edu',
-                'identifiant_interne' => 'ADJ001',
+                'identifiant_interne' => 'DA001',
                 'mot_de_passe' => Hash::make('password'),
-                'role' => 'DIRECTEUR_ACADEMIQUE_ADJOINT',
+                'role' => 'DIRECTEUR_ADJOINT',
                 'statut' => 'ACTIF'
             ]
         ]);

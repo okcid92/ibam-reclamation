@@ -9,16 +9,18 @@ class ClaimHistory extends Model
 {
     use HasFactory;
 
-    protected $table = 'claim_history';
-    protected $fillable = ['claim_id', 'user_id', 'action', 'comment'];
+    protected $table = 'historique_actions';
+    protected $primaryKey = 'id_action';
+
+    protected $fillable = ['id_reclamation', 'id_utilisateur', 'action', 'commentaire'];
 
     public function claim()
     {
-        return $this->belongsTo(Claim::class);
+        return $this->belongsTo(Claim::class, 'id_reclamation');
     }
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'id_utilisateur');
     }
 }
