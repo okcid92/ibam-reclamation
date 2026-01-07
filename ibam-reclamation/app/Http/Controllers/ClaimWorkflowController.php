@@ -129,25 +129,29 @@ class ClaimWorkflowController extends Controller
                 }
                 break;
             case 'SCOLARITE':
-                // Scolarité voit TOUTES les réclamations pour pouvoir suivre
-                // Pas de filtre ici
+                // Scolarité voit TOUTES les réclamations
                 break;
             case 'DIRECTEUR_ADJOINT':
-                // DA voit celles à son étape ou celles qu'il a déjà traitées
+                // DA voit celles à son étape, chez le prof, ou déjà traitées
+                // Il ne voit pas celles qui sont encore "bloquées" à la scolarité (étape SCOLARITE && statut SOUMISE)
                 $query->where(function ($q) {
-                    $q->where('r.etape_actuelle', 'DIRECTEUR_ADJOINT')
-                        ->orWhereIn('r.statut', ['VALIDEE', 'NON_VALIDEE', 'TERMINEE']);
+                    $q->where('r.etape_actuelle', '!=', 'SCOLARITE')
+                        ->orWhere('r.statut', '!=', 'SOUMISE');
                 });
                 break;
             case 'ENSEIGNANT':
-                // Enseignant voit seulement celles liées à ses matières
+                // Enseignant voit seulement celles liées à ses matières qui ont atteint son étape ou déjà traitées
                 $enseignant = DB::table('enseignants')->where('id_utilisateur', $userId)->first();
                 if ($enseignant) {
                     $matiereIds = DB::table('enseignant_matieres')
                         ->where('id_enseignant', $enseignant->id_enseignant)
                         ->pluck('id_matiere');
-                    $query->where('r.etape_actuelle', 'ENSEIGNANT')
-                        ->whereIn('r.id_matiere', $matiereIds);
+
+                    $query->whereIn('r.id_matiere', $matiereIds)
+                        ->where(function ($q) {
+                            $q->where('r.etape_actuelle', 'ENSEIGNANT')
+                                ->orWhereIn('r.statut', ['VALIDEE', 'NON_VALIDEE', 'TERMINEE']);
+                        });
                 } else {
                     return response()->json([]);
                 }
@@ -156,7 +160,7 @@ class ClaimWorkflowController extends Controller
 
         $claims = $query->orderBy('r.date_depot', 'desc')->get();
 
-        // Ajouter les pièces jointes pour chaque réclamation
+        // Ajouter les pièces jointes et l'historique pour chaque réclamation
         foreach ($claims as $claim) {
             $claim->attachments = DB::table('pieces_jointes')
                 ->where('id_reclamation', $claim->id)
@@ -171,6 +175,20 @@ class ClaimWorkflowController extends Controller
                     $attachment->url = asset('storage/' . $attachment->filepath);
                     return $attachment;
                 });
+
+            $claim->history = DB::table('historique_actions as h')
+                ->join('utilisateurs as u', 'h.id_utilisateur', '=', 'u.id_utilisateur')
+                ->where('h.id_reclamation', $claim->id)
+                ->select(
+                    'h.action',
+                    'h.commentaire as comment',
+                    'h.date_action as created_at',
+                    'u.prenom as user_firstname',
+                    'u.nom as user_lastname',
+                    'u.role as user_role'
+                )
+                ->orderBy('h.date_action', 'asc')
+                ->get();
         }
 
         return response()->json($claims);

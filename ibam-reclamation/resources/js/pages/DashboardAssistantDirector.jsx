@@ -54,6 +54,9 @@ export default function DashboardAssistantDirector() {
                     claim.current_step === 'DIRECTEUR_ADJOINT' && 
                     ['VALIDEE', 'NON_VALIDEE'].includes(claim.status)
                 );
+            case 'transmises':
+                // Réclamations actuellement chez l'Enseignant
+                return claims.filter(claim => claim.current_step === 'ENSEIGNANT');
             case 'terminees':
                 return claims.filter(claim => claim.status === 'TERMINEE');
             case 'rejetees':
@@ -80,6 +83,7 @@ export default function DashboardAssistantDirector() {
             all: claims.length,
             a_transmettre: aTransmettre,
             avis_recu: avisRecu,
+            transmises: claims.filter(claim => claim.current_step === 'ENSEIGNANT').length,
             terminees: claims.filter(claim => claim.status === 'TERMINEE').length,
             rejetees: claims.filter(claim => claim.status === 'REJETEE').length
         };
@@ -90,7 +94,8 @@ export default function DashboardAssistantDirector() {
 
     const filterOptions = [
         { key: 'all', label: 'Toutes', count: counts.all },
-        { key: 'a_transmettre', label: 'À transmettre au Prof', count: counts.a_transmettre },
+        { key: 'a_transmettre', label: 'À transmettre', count: counts.a_transmettre },
+        { key: 'transmises', label: 'Transmises (Prof)', count: counts.transmises },
         { key: 'avis_recu', label: 'Avis reçu → Scolarité', count: counts.avis_recu },
         { key: 'terminees', label: 'Terminées', count: counts.terminees },
         { key: 'rejetees', label: 'Rejetées', count: counts.rejetees }

@@ -111,7 +111,7 @@ const ClaimCard = ({ claim, onAction, canProcess, userRole, showActions = false 
 
                 {/* Pièces jointes */}
                 {claim.attachments && claim.attachments.length > 0 && (
-                    <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                    <div className="mb-4 p-3 bg-gray-50 rounded-lg shadow-inner">
                         <p className="text-sm font-medium text-gray-700 mb-2">📎 Pièces jointes ({claim.attachments.length}):</p>
                         <div className="flex flex-wrap gap-2">
                             {claim.attachments.map((attachment, index) => (
@@ -120,10 +120,41 @@ const ClaimCard = ({ claim, onAction, canProcess, userRole, showActions = false 
                                     href={attachment.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center px-3 py-1.5 rounded-md text-xs font-medium bg-white border border-gray-300 text-blue-600 hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                                    className="inline-flex items-center px-3 py-1.5 rounded-md text-xs font-medium bg-white border border-gray-300 text-blue-600 hover:bg-blue-50 hover:border-blue-300 transition-all shadow-sm"
                                 >
                                     {attachment.filetype?.includes('pdf') ? '📄' : '🖼️'} {attachment.filename}
                                 </a>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Historique */}
+                {claim.history && claim.history.length > 0 && (
+                    <div className="mb-4 border-t pt-4">
+                        <p className="text-sm font-medium text-gray-700 mb-3 ml-1">📜 Historique du traitement:</p>
+                        <div className="space-y-3">
+                            {claim.history.map((item, idx) => (
+                                <div key={idx} className="flex items-start space-x-3 text-sm">
+                                    <div className="flex-shrink-0 w-2 h-2 mt-1.5 rounded-full bg-blue-400"></div>
+                                    <div className="flex-1 bg-gray-50 p-2 rounded-md border border-gray-100">
+                                        <div className="flex justify-between items-center mb-1 text-xs">
+                                            <span className="font-semibold text-gray-700">
+                                                {item.user_firstname} {item.user_lastname} 
+                                                <span className="text-gray-400 font-normal ml-1">({item.user_role})</span>
+                                            </span>
+                                            <span className="text-gray-400 font-light">{formatDate(item.created_at)}</span>
+                                        </div>
+                                        <div className="text-blue-600 font-medium text-xs mb-1 uppercase tracking-wide">
+                                            {item.action}
+                                        </div>
+                                        {item.comment && (
+                                            <p className="text-gray-600 mt-1 border-l-2 border-blue-200 pl-2 text-sm italic">
+                                                "{item.comment}"
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
                             ))}
                         </div>
                     </div>
