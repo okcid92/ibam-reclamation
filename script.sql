@@ -1,5 +1,5 @@
 -- =========================================
--- BASE DE DONNÉES : IBAM RÉCLAMATIONS
+-- BASE DE DONNÉES : IBAM RÉCLAMATIONS  
 -- =========================================
 
 CREATE DATABASE ibam_reclamations
