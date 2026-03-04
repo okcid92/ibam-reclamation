@@ -1,1 +1,5 @@
-/.env/
+# Env files
+.env/
+
+# IDE
+.idea/
