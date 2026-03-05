@@ -65,6 +65,10 @@ export default function CreateClaim() {
             setError('Veuillez saisir le motif de la réclamation.');
             return;
         }
+        if (files.length === 0) {
+            setError('Veuillez ajouter au moins un justificatif.');
+            return;
+        }
         
         setLoading(true);
         setError('');
@@ -211,7 +215,7 @@ export default function CreateClaim() {
                             
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Pièces justificatives
+                                    Pièces justificatives *
                                 </label>
                                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
                                     <input 

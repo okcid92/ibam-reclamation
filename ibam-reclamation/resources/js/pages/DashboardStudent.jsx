@@ -122,7 +122,7 @@ export default function DashboardStudent() {
                 </div>
 
                 {/* Légende des statuts */}
-                <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                {/* <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
                     <h3 className="font-medium text-gray-800 mb-2">📊 Comprendre les statuts:</h3>
                     <div className="text-sm text-gray-600 grid grid-cols-2 md:grid-cols-4 gap-2">
                         <span>🟡 <strong>En cours:</strong> Traitement en cours</span>
@@ -130,7 +130,7 @@ export default function DashboardStudent() {
                         <span>🟢 <strong>Terminée:</strong> Traitement finalisé</span>
                         <span>🔴 <strong>Rejetée:</strong> Demande refusée</span>
                     </div>
-                </div>
+                </div> */}
             </div>
             
             <div className="space-y-4">

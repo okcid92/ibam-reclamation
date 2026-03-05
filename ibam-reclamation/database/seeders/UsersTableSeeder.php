@@ -14,7 +14,7 @@ class UsersTableSeeder extends Seeder
             [
                 'nom' => 'Dicko',
                 'prenom' => 'Alou',
-                'mot_de_passe' => Hash::make('password'),
+                'mot_de_passe' => Hash::make('M!@926732'),
                 'role' => 'ETUDIANT',
                 'statut' => 'ACTIF',
                 'email' => null,
@@ -23,7 +23,7 @@ class UsersTableSeeder extends Seeder
             [
                 'nom' => 'Naba',
                 'prenom' => 'Albert',
-                'mot_de_passe' => Hash::make('password'),
+                'mot_de_passe' => Hash::make('M!@926732'),
                 'role' => 'ETUDIANT',
                 'statut' => 'ACTIF',
                 'email' => null,
@@ -34,7 +34,7 @@ class UsersTableSeeder extends Seeder
                 'prenom' => 'Scolarite',
                 'email' => 'scolarite@ibam.edu',
                 'identifiant_interne' => 'SCOL001',
-                'mot_de_passe' => Hash::make('password'),
+                'mot_de_passe' => Hash::make('M!@926732'),
                 'role' => 'SCOLARITE',
                 'statut' => 'ACTIF'
             ],
@@ -43,7 +43,7 @@ class UsersTableSeeder extends Seeder
                 'prenom' => 'Yaya',
                 'email' => 'yaya.traore@ibam.edu',
                 'identifiant_interne' => 'ENS001',
-                'mot_de_passe' => Hash::make('password'),
+                'mot_de_passe' => Hash::make('M!@926732'),
                 'role' => 'ENSEIGNANT',
                 'statut' => 'ACTIF'
             ],
@@ -52,7 +52,7 @@ class UsersTableSeeder extends Seeder
                 'prenom' => 'Adjoint',
                 'email' => 'adjoint.directeur@ibam.edu',
                 'identifiant_interne' => 'DA001',
-                'mot_de_passe' => Hash::make('password'),
+                'mot_de_passe' => Hash::make('M!@926732'),
                 'role' => 'DIRECTEUR_ADJOINT',
                 'statut' => 'ACTIF'
             ]
