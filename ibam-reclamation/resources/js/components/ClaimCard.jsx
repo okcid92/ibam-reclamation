@@ -6,8 +6,34 @@ const ClaimCard = ({ claim, onAction, canProcess, userRole, showActions = false 
     const [comment, setComment] = useState('');
     const [correctedGrade, setCorrectedGrade] = useState('');
     const [processing, setProcessing] = useState(false);
+    const [error, setError] = useState('');
 
     const handleAction = async (action) => {
+        setError('');
+
+        // Règles de validation pour l'enseignant
+        if (userRole === 'ENSEIGNANT') {
+            if (action === 'approve') {
+                const gradeStr = String(correctedGrade ?? '').trim();
+                if (gradeStr === '') {
+                    setError("La note corrigée est obligatoire pour un avis favorable.");
+                    return;
+                }
+                const grade = Number(gradeStr);
+                if (Number.isNaN(grade) || grade < 0 || grade > 20) {
+                    setError("La note corrigée doit être un nombre entre 0 et 20.");
+                    return;
+                }
+            }
+
+            if (action === 'reject') {
+                if (!comment || comment.trim() === '') {
+                    setError("Le commentaire est obligatoire pour un avis défavorable.");
+                    return;
+                }
+            }
+        }
+
         setProcessing(true);
         try {
             await onAction(claim.id, action, comment, correctedGrade);
@@ -112,15 +138,17 @@ const ClaimCard = ({ claim, onAction, canProcess, userRole, showActions = false 
                 {/* Pièces jointes */}
                 {claim.attachments && claim.attachments.length > 0 && (
                     <div className="mb-4 p-3 bg-gray-50 rounded-lg shadow-inner">
-                        <p className="text-sm font-medium text-gray-700 mb-2">📎 Pièces jointes ({claim.attachments.length}):</p>
+                        <p className="text-sm font-medium text-gray-700 mb-2">
+                            📎 Pièces jointes ({claim.attachments.length}):
+                        </p>
                         <div className="flex flex-wrap gap-2">
                             {claim.attachments.map((attachment, index) => (
-                                <a 
+                                <a
                                     key={attachment.id || index}
                                     href={attachment.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center px-3 py-1.5 rounded-md text-xs font-medium bg-white border border-gray-300 text-blue-600 hover:bg-blue-50 hover:border-blue-300 transition-all shadow-sm"
+                                    className="inline-flex items-center px-3 py-1.5 rounded-md text-xs font-medium bg-white border border-gray-300 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
                                 >
                                     {attachment.filetype?.includes('pdf') ? '📄' : '🖼️'} {attachment.filename}
                                 </a>
@@ -132,7 +160,9 @@ const ClaimCard = ({ claim, onAction, canProcess, userRole, showActions = false 
                 {/* Historique */}
                 {claim.history && claim.history.length > 0 && (
                     <div className="mb-4 border-t pt-4">
-                        <p className="text-sm font-medium text-gray-700 mb-3 ml-1">📜 Historique du traitement:</p>
+                        <p className="text-sm font-medium text-gray-700 mb-3 ml-1">
+                            📜 Historique du traitement:
+                        </p>
                         <div className="space-y-3">
                             {claim.history.map((item, idx) => (
                                 <div key={idx} className="flex items-start space-x-3 text-sm">
@@ -140,10 +170,14 @@ const ClaimCard = ({ claim, onAction, canProcess, userRole, showActions = false 
                                     <div className="flex-1 bg-gray-50 p-2 rounded-md border border-gray-100">
                                         <div className="flex justify-between items-center mb-1 text-xs">
                                             <span className="font-semibold text-gray-700">
-                                                {item.user_firstname} {item.user_lastname} 
-                                                <span className="text-gray-400 font-normal ml-1">({item.user_role})</span>
+                                                {item.user_firstname} {item.user_lastname}
+                                                <span className="text-gray-400 font-normal ml-1">
+                                                    ({item.user_role})
+                                                </span>
                                             </span>
-                                            <span className="text-gray-400 font-light">{formatDate(item.created_at)}</span>
+                                            <span className="text-gray-400 font-light">
+                                                {formatDate(item.created_at)}
+                                            </span>
                                         </div>
                                         <div className="text-blue-600 font-medium text-xs mb-1 uppercase tracking-wide">
                                             {item.action}
@@ -164,7 +198,10 @@ const ClaimCard = ({ claim, onAction, canProcess, userRole, showActions = false 
                     <div className="border-t pt-4 mt-4">
                         {!showActionPanel ? (
                             <button
-                                onClick={() => setShowActionPanel(true)}
+                                onClick={() => {
+                                    setError('');
+                                    setShowActionPanel(true);
+                                }}
                                 className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
                             >
                                 🔧 Traiter la demande
@@ -202,6 +239,12 @@ const ClaimCard = ({ claim, onAction, canProcess, userRole, showActions = false 
                                     </div>
                                 )}
 
+                                {error && (
+                                    <div className="text-sm text-red-700 bg-red-50 border border-red-200 p-2 rounded">
+                                        {error}
+                                    </div>
+                                )}
+
                                 <div className="flex space-x-3">
                                     <button
                                         onClick={() => handleAction('approve')}
@@ -210,6 +253,7 @@ const ClaimCard = ({ claim, onAction, canProcess, userRole, showActions = false 
                                     >
                                         {processing ? '⏳' : '✓'} {actionLabels.approve}
                                     </button>
+
                                     {actionLabels.reject && (
                                         <button
                                             onClick={() => handleAction('reject')}
@@ -219,8 +263,12 @@ const ClaimCard = ({ claim, onAction, canProcess, userRole, showActions = false 
                                             {processing ? '⏳' : '✗'} {actionLabels.reject}
                                         </button>
                                     )}
+
                                     <button
-                                        onClick={() => setShowActionPanel(false)}
+                                        onClick={() => {
+                                            setError('');
+                                            setShowActionPanel(false);
+                                        }}
                                         className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
                                     >
                                         Annuler
